@@ -1,16 +1,19 @@
-// app/recordings/RecordScreen.tsx
-import React, { useState } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TouchableOpacity, Text, StyleSheet, Animated } from 'react-native';
 import { Audio } from 'expo-av';
 import { saveRecording } from '../../services/storageService';
 import { useThemeColors } from '../../styles';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 
-export default function RecordScreen({ navigation }: any) {
+export default function RecordMemos({ navigation }: any) {  // Renamed to 'RecordMemos'
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const themeColors = useThemeColors();
 
+  // Animated value for the waveform effect
+  const waveHeight = useState(new Animated.Value(1))[0];
+
+  // Start recording
   const startRecording = async () => {
     try {
       const { granted } = await Audio.requestPermissionsAsync();
@@ -22,20 +25,30 @@ export default function RecordScreen({ navigation }: any) {
       );
       setRecording(recording);
       setIsRecording(true);
+
+      // Start animating the waveform during recording
+      animateWaveform();
     } catch (err) {
       console.error('Failed to start recording:', err);
     }
   };
 
+  // Stop recording
   const stopRecording = async () => {
     setIsRecording(false);
     await recording?.stopAndUnloadAsync();
     const uri = recording?.getURI();
     await saveRecording(uri);
     setRecording(null);
-    navigation.navigate('RecordingsList');
+
+    // Stop the waveform animation
+    waveHeight.stopAnimation();
+
+    // Navigate to RecordingsList and hide the back arrow only
+    navigation.navigate('RecordingsList', { hideBackButton: true });
   };
 
+  // Pause recording
   const pauseRecording = async () => {
     try {
       await recording?.pauseAsync();
@@ -45,6 +58,7 @@ export default function RecordScreen({ navigation }: any) {
     }
   };
 
+  // Resume recording
   const resumeRecording = async () => {
     try {
       await recording?.startAsync();
@@ -54,19 +68,42 @@ export default function RecordScreen({ navigation }: any) {
     }
   };
 
+  // Animate the waveform (simple animation for demo)
+  const animateWaveform = () => {
+    Animated.loop(
+      Animated.sequence([ 
+        Animated.timing(waveHeight, {
+          toValue: 2,
+          duration: 500,
+          useNativeDriver: false,
+        }),
+        Animated.timing(waveHeight, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: false,
+        }),
+      ])
+    ).start();
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      {/* Animated waveform (simple visual representation) */}
+      {isRecording && (
+        <Animated.View style={[styles.waveform, { height: waveHeight }]} />
+      )}
+
       <View style={styles.iconContainer}>
         {recording ? (
           isRecording ? (
             // Show pause icon while recording
             <TouchableOpacity onPress={pauseRecording}>
-              <FontAwesome name="pause" size={50} color={themeColors.primary} />
+              <FontAwesome name="pause" size={20} color={themeColors.primary} />
             </TouchableOpacity>
           ) : (
             // Show resume icon when paused
             <TouchableOpacity onPress={resumeRecording}>
-              <FontAwesome name="play" size={50} color={themeColors.primary} />
+              <FontAwesome name="play" size={30} color={themeColors.primary} />
             </TouchableOpacity>
           )
         ) : (
@@ -75,7 +112,7 @@ export default function RecordScreen({ navigation }: any) {
             <FontAwesome name="microphone" size={40} color={themeColors.primary} />
           </TouchableOpacity>
         )}
-        
+
         {recording && (
           // Show stop icon if recording is in progress or paused
           <TouchableOpacity onPress={stopRecording} style={styles.stopButton}>
@@ -84,9 +121,9 @@ export default function RecordScreen({ navigation }: any) {
         )}
       </View>
 
-      {recording && <Text style={[styles.recordingText, { color: themeColors.text }]}>
+      {/* {recording && <Text style={[styles.recordingText, { color: themeColors.text }]}>
         {isRecording ? "Recording in progress..." : "Recording paused"}
-      </Text>}
+      </Text>} */}
     </View>
   );
 }
@@ -109,5 +146,18 @@ const styles = StyleSheet.create({
   recordingText: {
     marginTop: 10,
     fontSize: 16,
+  },
+  waveform: {
+    width: 250, // Adjust width for better visibility
+    height: 250, // Initial height, will be animated
+    backgroundColor: 'grey', // Soft white background
+    marginBottom: 30,
+    borderRadius: 5, // Rounded corners
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)', // Subtle shadow for depth
+    elevation: 4, // For Android
+    overflow: 'hidden', // Ensures animation stays within the bounds
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
 });
