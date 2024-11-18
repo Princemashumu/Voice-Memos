@@ -173,7 +173,7 @@ export function RecordingItem({ recording, onDelete, textStyle }: RecordingItemP
 const styles = StyleSheet.create({
   item: {
     padding: 12,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'grey',
     marginBottom: 10,
     borderRadius: 8,
     flexDirection: 'row',
