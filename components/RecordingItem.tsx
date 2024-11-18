@@ -1,19 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';  // Import Audio from expo-av
-import { updateRecordingName, deleteRecording } from '../services/storageService';
+import { Audio, AVPlaybackStatus } from 'expo-av';  // Added AVPlaybackStatus import
+import { updateRecordingName } from '../services/storageService';
 
-export function RecordingItem({ recording, onDelete, textStyle }: any) {
+interface Recording {
+  id: string;
+  name: string;
+  uri: string;
+}
+
+interface RecordingItemProps {
+  recording: Recording;
+  onDelete: (id: string) => void;
+  textStyle?: object;
+}
+
+export function RecordingItem({ recording, onDelete, textStyle }: RecordingItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(recording.name);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);  // State for the sound
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState<number | null>(null); // Duration of the recording
-  const [currentTime, setCurrentTime] = useState<number>(0); // Current playback time
+  const [duration, setDuration] = useState<number | null>(null);
+  const [currentTime, setCurrentTime] = useState<number>(0);
 
-  // Load sound when the recording URI changes
   useEffect(() => {
+    let isMounted = true;
+
     const loadSound = async () => {
       if (!recording.uri) {
         console.error('Recording URI is missing.');
@@ -25,11 +38,14 @@ export function RecordingItem({ recording, onDelete, textStyle }: any) {
           { uri: recording.uri },
           { shouldPlay: false }
         );
-        setSound(sound);
-
-        // Get the duration of the recording
-        const status = await sound.getStatusAsync();
-        setDuration(status.durationMillis);
+        
+        if (isMounted) {
+          setSound(sound);
+          const status = await sound.getStatusAsync();
+          if (status.isLoaded) {  // Type guard
+            setDuration(status.durationMillis ?? null);
+          }
+        }
       } catch (error) {
         console.error('Error loading sound:', error);
       }
@@ -37,100 +53,140 @@ export function RecordingItem({ recording, onDelete, textStyle }: any) {
 
     loadSound();
 
-    // Cleanup on component unmount
     return () => {
+      isMounted = false;
       if (sound) {
         sound.unloadAsync();
       }
     };
   }, [recording.uri]);
 
-  // Play or pause the sound
+  useEffect(() => {
+    if (!sound) return;
+
+    const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+      if (status.isLoaded) {  // Type guard
+        if (status.isPlaying) {
+          setCurrentTime(status.positionMillis);
+        }
+        
+        if (status.didJustFinish) {
+          setIsPlaying(false);
+          setCurrentTime(0);
+          sound.setPositionAsync(0);
+        }
+      }
+    };
+
+    sound.setOnPlaybackStatusUpdate(onPlaybackStatusUpdate);
+
+    return () => {
+      sound.setOnPlaybackStatusUpdate(null);
+    };
+  }, [sound]);
+
   const handlePlayPause = async () => {
     if (!sound) return;
 
-    if (isPlaying) {
-      await sound.pauseAsync();
-    } else {
-      await sound.playAsync();
-    }
-    setIsPlaying(!isPlaying);
-
-    // Track current playback time
-    sound.setOnPlaybackStatusUpdate((status) => {
-      if (status.isPlaying) {
-        setCurrentTime(status.positionMillis);
+    try {
+      if (isPlaying) {
+        await sound.pauseAsync();
+      } else {
+        await sound.playAsync();
       }
-    });
+      setIsPlaying(!isPlaying);
+    } catch (error) {
+      console.error('Error playing/pausing sound:', error);
+    }
   };
 
-  // Handle name change for the recording
   const handleNameChange = async () => {
-    if (newName.trim() !== '') {
+    if (newName.trim() === '') return;
+    
+    try {
       await updateRecordingName(recording.id, newName);
+    } catch (error) {
+      console.error('Error updating recording name:', error);
+      setNewName(recording.name);
     }
     setIsEditing(false);
   };
 
+  const formatTime = (milliseconds: number): string => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   return (
     <View style={styles.item}>
-      {isEditing ? (
-        <TextInput
-          style={styles.textInput}
-          value={newName}
-          onChangeText={setNewName}
-          onBlur={handleNameChange}
-          autoFocus
-        />
-      ) : (
-        <Text style={[styles.text, textStyle]}>{recording.name}</Text>
-      )}
+      <View style={styles.contentContainer}>
+        {isEditing ? (
+          <TextInput
+            style={styles.textInput}
+            value={newName}
+            onChangeText={setNewName}
+            onBlur={handleNameChange}
+            onSubmitEditing={handleNameChange}
+            autoFocus
+          />
+        ) : (
+          <Text style={[styles.text, textStyle]} numberOfLines={1}>
+            {recording.name}
+          </Text>
+        )}
+
+        <View style={styles.timeInfo}>
+          {duration !== null && (
+            <Text style={styles.durationText}>
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </Text>
+          )}
+        </View>
+      </View>
 
       <View style={styles.actions}>
-        <TouchableOpacity onPress={() => setIsEditing(true)}>
-          <MaterialIcons name="edit" size={24} color="black" />
+        <TouchableOpacity onPress={() => setIsEditing(true)} style={styles.actionButton}>
+          <MaterialIcons name="edit" size={24} color="#333" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => onDelete(recording.id)}>
-          <MaterialIcons name="delete" size={24} color="black" />
-        </TouchableOpacity>
-
-        {/* Play button */}
-        <TouchableOpacity onPress={handlePlayPause}>
+        
+        <TouchableOpacity onPress={handlePlayPause} style={styles.actionButton}>
           <MaterialIcons
             name={isPlaying ? 'pause-circle-filled' : 'play-circle-filled'}
             size={24}
-            color="black"
+            color="#333"
           />
         </TouchableOpacity>
-      </View>
 
-      {/* Display dropdown with duration and current time */}
-      {isPlaying && (
-        <View style={styles.durationContainer}>
-          <Text style={styles.durationText}>
-            {duration ? `Duration: ${Math.floor(duration / 1000)}s` : 'Loading...'}
-          </Text>
-          <Text style={styles.durationText}>
-            {`Playing: ${Math.floor(currentTime / 1000)}s`}
-          </Text>
-        </View>
-      )}
+        <TouchableOpacity 
+          onPress={() => onDelete(recording.id)} 
+          style={styles.actionButton}
+        >
+          <MaterialIcons name="delete" size={24} color="#333" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   item: {
-    padding: 10,
-    backgroundColor: 'grey',
+    padding: 12,
+    backgroundColor: '#f5f5f5',
     marginBottom: 10,
-    borderRadius: 5,
+    borderRadius: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  contentContainer: {
+    flex: 1,
+    marginRight: 10,
+  },
   text: {
     fontSize: 16,
+    color: '#333',
   },
   textInput: {
     fontSize: 16,
@@ -138,20 +194,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#ccc',
     padding: 5,
+    color: '#333',
   },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  durationContainer: {
-    marginTop: 10,
-    backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 5,
-    width: '100%',
+  actionButton: {
+    padding: 8,
+    marginLeft: 4,
+  },
+  timeInfo: {
+    marginTop: 4,
   },
   durationText: {
-    fontSize: 14,
-    color: 'black',
-  },
+    fontSize: 12,
+    color: '#666',
+  }
 });
