@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Animated, StyleSheet } from 'react-native';
+import { View, Animated, StyleSheet, Alert } from 'react-native';
 import { Audio } from 'expo-av';
 import Header from './Header';
 import RecordingsList from './RecordingsList.tsx';
@@ -55,15 +55,28 @@ export default function RecordMemos({ navigation }) {
         alert('Microphone permission is required to record.');
         return;
       }
-      setIsRecording(true);
+
+      // Configure audio mode for recording
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+        shouldDuckAndroid: true,
+        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+      });
 
       const recordingInstance = new Audio.Recording();
-      await recordingInstance.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+      await recordingInstance.prepareToRecordAsync(
+        Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+      );
       await recordingInstance.startAsync();
       setRecording(recordingInstance);
       setRecordTime(0);
+      setIsRecording(true);
     } catch (error) {
-      console.error('Failed to start recording', error);
+      console.error('Failed to start recording:', error);
+      alert('Recording failed. Please check permissions or audio settings.');
       setIsRecording(false);
     }
   };
@@ -72,17 +85,49 @@ export default function RecordMemos({ navigation }) {
     try {
       if (!recording) return;
       setIsRecording(false);
+
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
 
-      // Save the recording and refresh the list
+      if (!uri) {
+        console.error('Recording URI is null or undefined.');
+        alert('Failed to retrieve recording. Please try again.');
+        return;
+      }
+
       const newRecording = await saveRecording({ uri, createdAt: new Date() });
       setRecordings((prev) => [newRecording, ...prev]);
       setFilteredRecordings((prev) => [newRecording, ...prev]);
     } catch (error) {
-      console.error('Failed to stop recording', error);
+      console.error('Failed to stop recording:', error);
+      alert('An error occurred while stopping the recording.');
     } finally {
       setRecording(null);
+    }
+  };
+
+  const playRecording = async (uri) => {
+    try {
+      if (!uri) {
+        alert('Cannot play recording. URI is invalid.');
+        return;
+      }
+
+      // Configure audio mode for playback
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_MIX_WITH_OTHERS,
+        shouldDuckAndroid: true,
+        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+      });
+
+      const { sound } = await Audio.Sound.createAsync({ uri });
+      await sound.playAsync();
+    } catch (error) {
+      console.error('Error loading sound:', error);
+      alert('Failed to play the recording. Please try again.');
     }
   };
 
@@ -103,9 +148,7 @@ export default function RecordMemos({ navigation }) {
       <Header searchQuery={searchQuery} onSearch={handleSearch} />
       <RecordingsList
         recordings={filteredRecordings}
-        onSelect={(item) =>
-          navigation.navigate('RecordScreen', { recordingId: item.id })
-        }
+        onSelect={(item) => playRecording(item.uri)}
       />
       <RecordingControls
         isRecording={isRecording}
