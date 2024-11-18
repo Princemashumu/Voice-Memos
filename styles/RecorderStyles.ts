@@ -9,7 +9,7 @@ export const RecorderStyles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    color: colors.text,
+    color: "white",
     fontFamily: fonts.bold,
     marginBottom: 20,
     textAlign: 'center',
@@ -43,10 +43,11 @@ export const RecorderStyles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 5,
+    color:'white'
   },
   listItemText: {
     fontSize: 16,
-    color: colors.text,
+    color: "white",
     fontFamily: fonts.regular,
   },
   deleteButton: {

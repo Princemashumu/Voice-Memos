@@ -1,46 +1,67 @@
-// app/recordings/RecordingsList.tsx
+// RecordingsList.tsx
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, TouchableOpacity } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, FlatList, StyleSheet } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { RecordingItem } from '../../components/RecordingItem';
 import { loadRecordings, deleteRecording } from '../../services/storageService';
 
-export default function RecordingsList({ navigation, route }: any) {
+export default function RecordingsList() {
   const [recordings, setRecordings] = useState<any[]>([]);
+  const navigation = useNavigation();
+  const route = useRoute();
 
   useEffect(() => {
-    // Configure header with custom title, left, and right icons
     navigation.setOptions({
       title: 'Voice Memos',
-      headerLeft: route.params?.hideBackButton ? () => null : undefined,
-      headerRight: () => (
-        <TouchableOpacity onPress={() => navigation.navigate('RecordScreen')}>
-          <MaterialIcons name="arrow-forward" size={24} color="black" />
-        </TouchableOpacity>
-      ),
+      headerLeft: route.params?.hideBackButton
+        ? () => null
+        : undefined,
     });
 
     const fetchRecordings = async () => {
-      const loadedRecordings = await loadRecordings();
-      setRecordings(loadedRecordings);
+      try {
+        const loadedRecordings = await loadRecordings();
+        setRecordings(loadedRecordings || []);
+      } catch (error) {
+        console.error('Failed to load recordings:', error);
+      }
     };
+
     fetchRecordings();
-  }, [route.params]);
+  }, [route.params, navigation]);
 
   const handleDelete = async (id: string) => {
-    await deleteRecording(id);
-    setRecordings((prev) => prev.filter((rec) => rec.id !== id));
+    try {
+      await deleteRecording(id);
+      setRecordings((prev) => prev.filter((rec) => rec.id !== id));
+    } catch (error) {
+      console.error('Failed to delete recording:', error);
+    }
   };
 
   return (
-    <View>
+    <View style={styles.container}>
       <FlatList
         data={recordings}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <RecordingItem recording={item} onDelete={handleDelete} />
+          <RecordingItem recording={item} onDelete={handleDelete} textStyle={styles.text} />
         )}
+        contentContainerStyle={styles.listContainer}
       />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#CCA65F',
+  },
+  listContainer: {
+    paddingVertical: 10,
+  },
+  text: {
+    color: 'white',
+  },
+});

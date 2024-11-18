@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -14,11 +13,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mernprince.VoiceMemos", 
-      "buildNumber": "1.0.0",
-      "infoPlist": {
-        "NSMicrophoneUsageDescription": "We need access to your microphone to record voice memos."
-      }
+      "bundleIdentifier": "com.mernprince.VoiceMemos"
     },
     "android": {
       "adaptiveIcon": {
@@ -32,6 +27,14 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "53ce8ae0-56e8-4462-ab3a-43177cba96cb"
+      }
+    }
   }
 }
