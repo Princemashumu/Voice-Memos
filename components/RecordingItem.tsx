@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Audio, AVPlaybackStatus } from 'expo-av';  // Added AVPlaybackStatus import
+import { Audio, AVPlaybackStatus, AVPlaybackStatusSuccess } from 'expo-av';
+import * as FileSystem from 'expo-file-system';
 import { updateRecordingName } from '../services/storageService';
 
 interface Recording {
   id: string;
   name: string;
   uri: string;
+  duration?: number; // Optional duration field
 }
 
 interface RecordingItemProps {
@@ -21,36 +23,64 @@ export function RecordingItem({ recording, onDelete, textStyle }: RecordingItemP
   const [newName, setNewName] = useState(recording.name);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState<number | null>(null);
+  const [duration, setDuration] = useState<number | null>(recording.duration ?? null);
   const [currentTime, setCurrentTime] = useState<number>(0);
 
   useEffect(() => {
     let isMounted = true;
 
-    const loadSound = async () => {
-      if (!recording.uri) {
-        console.error('Recording URI is missing.');
-        return;
-      }
-
+    const setupAudioMode = async () => {
       try {
-        const { sound } = await Audio.Sound.createAsync(
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          staysActiveInBackground: true,
+          interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+          playsInSilentModeIOS: true,
+          shouldDuckAndroid: true,
+          interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+          playThroughEarpieceAndroid: false,
+        });
+      } catch (error) {
+        console.error('Error setting audio mode:', error);
+        Alert.alert('Audio Error', 'Could not configure audio settings');
+      }
+    };
+
+    const loadSound = async () => {
+      try {
+        // Check permissions
+        const { granted } = await Audio.requestPermissionsAsync();
+        if (!granted) {
+          Alert.alert('Permission Denied', 'Audio playback permission is required.');
+          return;
+        }
+
+        // Check if file exists
+        const fileInfo = await FileSystem.getInfoAsync(recording.uri);
+        if (!fileInfo.exists) {
+          throw new Error('Audio file does not exist');
+        }
+
+        // Load sound
+        const { sound, status } = await Audio.Sound.createAsync(
           { uri: recording.uri },
-          { shouldPlay: false }
+          { shouldPlay: true }
         );
-        
+
         if (isMounted) {
           setSound(sound);
-          const status = await sound.getStatusAsync();
-          if (status.isLoaded) {  // Type guard
-            setDuration(status.durationMillis ?? null);
+          if (status.isLoaded) {
+            const loadedDuration = status.durationMillis ?? null;
+            setDuration(loadedDuration);
           }
         }
       } catch (error) {
         console.error('Error loading sound:', error);
+        Alert.alert('Playback Error', 'Could not load audio file');
       }
     };
 
+    setupAudioMode();
     loadSound();
 
     return () => {
@@ -65,15 +95,13 @@ export function RecordingItem({ recording, onDelete, textStyle }: RecordingItemP
     if (!sound) return;
 
     const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
-      if (status.isLoaded) {  // Type guard
-        if (status.isPlaying) {
-          setCurrentTime(status.positionMillis);
-        }
-        
-        if (status.didJustFinish) {
+      if (status.isLoaded) {
+        const playbackStatus = status as AVPlaybackStatusSuccess;
+        setCurrentTime(playbackStatus.positionMillis);
+
+        if (playbackStatus.didJustFinish) {
           setIsPlaying(false);
           setCurrentTime(0);
-          sound.setPositionAsync(0);
         }
       }
     };
@@ -86,30 +114,51 @@ export function RecordingItem({ recording, onDelete, textStyle }: RecordingItemP
   }, [sound]);
 
   const handlePlayPause = async () => {
-    if (!sound) return;
+    if (!sound) {
+      console.error('Sound not loaded');
+      return;
+    }
 
     try {
-      if (isPlaying) {
-        await sound.pauseAsync();
+      const status = await sound.getStatusAsync();
+      console.log('Playback Status Before Play/Pause:', status);
+
+      if (status.isLoaded) {
+        const playbackStatus = status as AVPlaybackStatusSuccess;
+
+        if (isPlaying) {
+          await sound.pauseAsync();
+          console.log('Paused');
+        } else {
+          if (playbackStatus.positionMillis === playbackStatus.durationMillis) {
+            await sound.replayAsync();
+            console.log('Replayed');
+          } else {
+            await sound.playAsync();
+            console.log('Playing');
+          }
+        }
+        setIsPlaying(!isPlaying);
       } else {
-        await sound.playAsync();
+        console.error('Sound not loaded correctly');
       }
-      setIsPlaying(!isPlaying);
     } catch (error) {
       console.error('Error playing/pausing sound:', error);
+      Alert.alert('Playback Error', 'Could not play audio');
     }
   };
 
   const handleNameChange = async () => {
     if (newName.trim() === '') return;
-    
+
     try {
       await updateRecordingName(recording.id, newName);
+      setIsEditing(false);
     } catch (error) {
       console.error('Error updating recording name:', error);
+      Alert.alert('Update Error', 'Could not update recording name');
       setNewName(recording.name);
     }
-    setIsEditing(false);
   };
 
   const formatTime = (milliseconds: number): string => {
@@ -147,28 +196,16 @@ export function RecordingItem({ recording, onDelete, textStyle }: RecordingItemP
       </View>
 
       <View style={styles.actions}>
-        <TouchableOpacity onPress={() => setIsEditing(true)} style={styles.actionButton}>
-          <MaterialIcons name="edit" size={24} color="#333" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity onPress={handlePlayPause} style={styles.actionButton}>
-          <MaterialIcons
-            name={isPlaying ? 'pause-circle-filled' : 'play-circle-filled'}
-            size={24}
-            color="#333"
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          onPress={() => onDelete(recording.id)} 
-          style={styles.actionButton}
-        >
-          <MaterialIcons name="delete" size={24} color="#333" />
-        </TouchableOpacity>
+        {duration !== null && (
+          <Text style={styles.durationActionText}>
+            {formatTime(duration)}
+          </Text>
+        )}
       </View>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   item: {
@@ -183,6 +220,11 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     marginRight: 10,
+  },
+  durationActionText: {
+    fontSize: 14,
+    color: '#333',
+    marginLeft: 10,
   },
   text: {
     fontSize: 16,
@@ -210,5 +252,5 @@ const styles = StyleSheet.create({
   durationText: {
     fontSize: 12,
     color: '#666',
-  }
+  },
 });

@@ -29,7 +29,8 @@
     "react-native-sound": "^0.11.2",
     "react-native-uuid": "^2.0.3",
     "react-native-waveform": "^0.2.1",
-    "react-native-web": "~0.19.13"
+    "react-native-web": "~0.19.13",
+    "expo-file-system": "~18.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
