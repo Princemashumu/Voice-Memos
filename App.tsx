@@ -20,7 +20,7 @@ const CustomHeader = ({ navigation }: any) => {
       >
         <MaterialIcons name="arrow-back" size={25} color="white" />
       </TouchableOpacity> */}
-      <Text style={styles.headerText}>Edit</Text>
+      {/* <Text style={styles.headerText}>Edit</Text> */}
     </SafeAreaView>
   );
 };

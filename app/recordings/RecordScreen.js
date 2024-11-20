@@ -147,7 +147,7 @@ export default function RecordMemos({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#CCA65F',
+    backgroundColor: 'white',
     color: 'black',
   },
 });
