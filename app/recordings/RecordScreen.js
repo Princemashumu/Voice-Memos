@@ -12,6 +12,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system'; // Import Expo FileSystem
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 import RecordingModal from './RecordingModal';
 
 export default function RecordScreen() {
@@ -26,6 +27,35 @@ export default function RecordScreen() {
 
   const modalAnimation = useRef(new Animated.Value(0)).current;
   const waveformAnimation = useRef(new Animated.Value(0)).current;
+
+  // Fetch recordings from AsyncStorage on component mount
+  useEffect(() => {
+    const loadRecordings = async () => {
+      try {
+        const savedRecordings = await AsyncStorage.getItem('recordings');
+        if (savedRecordings) {
+          setRecordings(JSON.parse(savedRecordings));
+        }
+      } catch (error) {
+        console.error('Failed to load recordings', error);
+      }
+    };
+
+    loadRecordings();
+  }, []);
+
+  // Save recordings to AsyncStorage
+  useEffect(() => {
+    const saveRecordings = async () => {
+      try {
+        await AsyncStorage.setItem('recordings', JSON.stringify(recordings));
+      } catch (error) {
+        console.error('Failed to save recordings', error);
+      }
+    };
+
+    saveRecordings();
+  }, [recordings]);
 
   // Handle recording start
   const startRecording = async () => {
@@ -127,8 +157,8 @@ export default function RecordScreen() {
           duration: 500,
           useNativeDriver: true,
         }),
-      ])
-    ).start();
+      ]).start()
+    );
   };
 
   const handlePlay = async (uri) => {
@@ -236,26 +266,22 @@ export default function RecordScreen() {
           modalAnimation={modalAnimation}
           waveformAnimation={waveformAnimation}
           recordTime={recordTime}
+          isPlaying={isPlaying}
           onStop={stopRecording}
         />
       </Modal>
 
-      {/* Confirmation Delete Modal */}
-      <Modal
-        visible={showDeleteModal}
-        transparent
-        animationType="fade"
-        onRequestClose={cancelDelete}
-      >
+      {/* Delete Confirmation Modal */}
+      <Modal visible={showDeleteModal} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalText}>Are you sure you want to delete this recording?</Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity onPress={cancelDelete} style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Cancel</Text>
-              </TouchableOpacity>
+            <View style={styles.modalActions}>
               <TouchableOpacity onPress={confirmDelete} style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Delete</Text>
+                <Text style={styles.modalButtonText}>Yes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={cancelDelete} style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>No</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -268,49 +294,52 @@ export default function RecordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: '#1e1e1e',
     alignItems: 'center',
-    backgroundColor: 'black',
+    justifyContent: 'center',
+    paddingTop: 40,
   },
   header: {
-    fontSize: 30,
+    color: 'white',
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 10,
-    color:'white'
   },
   subHeader: {
-    fontSize: 16,
-    color: 'gray',
-    marginBottom: 20,
+    color: 'white',
+    fontSize: 18,
+    marginTop: 10,
   },
   recordButton: {
+    marginTop: 20,
     backgroundColor: '#ff6347',
     borderRadius: 50,
     padding: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   recordingsList: {
+    marginTop: 20,
     width: '100%',
-    paddingHorizontal: 20,
   },
   recordingItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    backgroundColor: '#333',
+    marginBottom: 10,
+    padding: 15,
+    borderRadius: 10,
+    justifyContent: 'space-between',
   },
   recordingDetails: {
     flex: 1,
     marginLeft: 10,
   },
   recordingName: {
-    fontSize: 16,
+    color: 'white',
     fontWeight: 'bold',
-    color:'white'
   },
   recordingTime: {
-    color: 'gray',
+    color: 'lightgray',
   },
   playbackControls: {
     flexDirection: 'row',
@@ -333,15 +362,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 20,
   },
-  modalButtons: {
+  modalActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     width: '100%',
   },
   modalButton: {
+    backgroundColor: '#ff6347',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: '#ff6347',
     borderRadius: 5,
   },
   modalButtonText: {
