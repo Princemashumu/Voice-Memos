@@ -16,14 +16,9 @@ export default function LoginSignup({ navigation }) {
     setLoading(true);
 
     try {
-      // Replace this with your authentication API
-      // const response = await yourAuthApi.login(email, password);
       console.log('Login with email:', email, 'password:', password);
-
-      // On success
       setLoading(false);
       Alert.alert('Login Success', 'You are now logged in!');
-      // Navigate to another screen, e.g., home screen
       navigation.navigate('Home');
     } catch (error) {
       setLoading(false);
@@ -40,14 +35,9 @@ export default function LoginSignup({ navigation }) {
     setLoading(true);
 
     try {
-      // Replace this with your authentication API
-      // const response = await yourAuthApi.signup(email, password);
       console.log('Signup with email:', email, 'password:', password);
-
-      // On success
       setLoading(false);
       Alert.alert('Signup Success', 'Your account has been created!');
-      // Navigate to login screen
       setIsLogin(true);
     } catch (error) {
       setLoading(false);
@@ -63,6 +53,7 @@ export default function LoginSignup({ navigation }) {
         style={styles.input}
         placeholder="Email"
         keyboardType="email-address"
+        placeholderTextColor="#aaa"
         value={email}
         onChangeText={setEmail}
       />
@@ -70,6 +61,7 @@ export default function LoginSignup({ navigation }) {
         style={styles.input}
         placeholder="Password"
         secureTextEntry
+        placeholderTextColor="#aaa"
         value={password}
         onChangeText={setPassword}
       />
@@ -86,7 +78,7 @@ export default function LoginSignup({ navigation }) {
         )}
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => setIsLogin(!isLogin)} style={styles.toggleText}>
+      <TouchableOpacity onPress={() => setIsLogin(!isLogin)} style={styles.toggleContainer}>
         <Text style={styles.toggleText}>
           {isLogin ? 'Don\'t have an account? Sign Up' : 'Already have an account? Login'}
         </Text>
@@ -101,24 +93,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: 'black',
-    color:'white'
+    backgroundColor: '#455a64',
   },
   header: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: 'white',
+    color: '#333',
   },
   input: {
     width: '100%',
     height: 50,
-    borderColor: '#ccc',
+    borderColor: '#ddd',
     borderWidth: 1,
     marginBottom: 15,
-    paddingLeft: 10,
-    borderRadius: 5,
-    coloe:'white'
+    paddingLeft: 15,
+    borderRadius: 10,
+    backgroundColor: 'white',
+    fontSize: 16,
   },
   button: {
     width: '100%',
@@ -126,14 +118,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#007BFF',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 5,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   buttonText: {
     color: 'white',
     fontSize: 18,
+    fontWeight: 'bold',
+  },
+  toggleContainer: {
+    marginTop: 15,
   },
   toggleText: {
-    marginTop: 15,
     color: '#007BFF',
+    fontSize: 16,
   },
 });

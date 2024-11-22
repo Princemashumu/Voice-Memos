@@ -1,48 +1,85 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Animated, ImageBackground } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
 
 export default function SplashScreen({ navigation }) {
-  const fadeAnim = new Animated.Value(0); // Initial opacity value
-
-  useEffect(() => {
-    // Fade in animation
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 2000, // 2 seconds
-      useNativeDriver: true,
-    }).start();
-
-    // Navigate to the next screen after 3 seconds
-    setTimeout(() => {
-      navigation.replace('Home'); // Replace 'Home' with your next screen name
-    }, 3000); // 3 seconds
-  }, []);
+  const handleGetStarted = () => {
+    navigation.replace('LoginSignup'); // Navigate to LoginSignup screen
+  };
 
   return (
-    <ImageBackground
-      source={require('assets/1732283085433_8f1b.jpg')} // Path to your background image
-      style={styles.container}
-    >
-      <Animated.View style={{ ...styles.splashText, opacity: fadeAnim }}>
-        <Text style={styles.splashText}>Welcome to My App</Text>
-      </Animated.View>
-    </ImageBackground>
+    <View style={styles.container}>
+      {/* Top Section with Background Image */}
+      <ImageBackground
+        source={require('../assets/1732283085433_8f1b.jpg')} // Replace with your background image
+        style={styles.topSection}
+        imageStyle={styles.imageStyle} // Ensures borderRadius applies to the image
+      >
+      </ImageBackground>
+
+      {/* Bottom Section */}
+      <View style={styles.bottomSection}>
+        <Text style={styles.description}>
+          The best app to record and manage your voice notes effortlessly.
+        </Text>
+        <TouchableOpacity style={styles.getStartedButton} onPress={handleGetStarted}>
+          <Text style={styles.buttonText}>Get Started</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'white',
+  },
+  topSection: {
+    flex: 2, // Occupies two-thirds of the screen
     justifyContent: 'center',
     alignItems: 'center',
-    resizeMode: 'cover', // To ensure the image covers the entire screen
+    borderBottomLeftRadius: 150, // Creates the circular border at the top
+    borderBottomRightRadius: 150,
+    overflow: 'hidden', // Ensures the image doesn't exceed the border radius
+    width: '100%', // Ensures the background image covers the full width
   },
-  splashText: {
-    fontSize: 30,
+  imageStyle: {
+    resizeMode: 'cover', // Ensures the image scales to fill while maintaining aspect ratio
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  bottomSection: {
+    flex: 1, // Occupies one-third of the screen
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden', // Ensures content doesn't overflow the border radius
+  },
+  title: {
+    fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
-    textShadowColor: 'rgba(0, 0, 0, 0.6)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 10,
+    textAlign: 'center',
+  },
+  description: {
+    fontSize: 18, // Slightly larger text for better readability
+    fontWeight: '600', // Semi-bold font weight
+    color: '#455a64',
+    textAlign: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 30,
+    letterSpacing: 0.5, // Adds slight spacing between letters
+    lineHeight: 24, // Improves spacing between lines for better readability
+  },
+  getStartedButton: {
+    backgroundColor: '#FF1493',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
