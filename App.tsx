@@ -42,7 +42,7 @@ export default function App() {
                 style={[styles.splashContainer, { opacity: fadeAnim }]}
               >
                 <ImageBackground
-                  source={require('./assets/VOICE MEMOS.jpg')}
+                  source={require('./assets/image1.jpg')}
                   style={styles.imageBackground}
                   resizeMode="contain" // Makes sure the image is scaled properly
                 />
@@ -65,12 +65,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'black',
+    
   },
   imageBackground: {
-    flex: 1,
+    width: 200, // Set a fixed width
+    height: 200, // Set a fixed height
+    borderRadius: 100, // Half of width/height to make it a circle
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%', // Ensure it takes up full width
-    height: '100%', // Ensure it takes up full height
+    overflow: 'hidden', // Ensures the image doesn't overflow the border radius
   },
 });

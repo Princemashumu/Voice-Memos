@@ -20,7 +20,7 @@ export default function SplashScreen({ navigation }) {
 
   return (
     <ImageBackground
-      source={require('../assets/VOICE MEMOS (2).png')} // Path to your background image
+      source={require('assets/1732283085433_8f1b.jpg')} // Path to your background image
       style={styles.container}
     >
       <Animated.View style={{ ...styles.splashText, opacity: fadeAnim }}>
