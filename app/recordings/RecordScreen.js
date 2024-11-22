@@ -411,18 +411,21 @@
    recordingTime: {
      color: 'lightgray',
    },
-   playbackControls: {
+   playbackControls:
+    {
      flexDirection: 'row',
      alignItems: 'center',
      gap: 10,
    },
-   modalContainer: {
+   modalContainer:
+    {
      flex: 1,
      justifyContent: 'center',
      alignItems: 'center',
      backgroundColor: 'rgba(0, 0, 0, 0.5)',
    },
-   modalContent: {
+   modalContent: 
+   {
      backgroundColor: 'white',
      padding: 20,
      borderRadius: 10,

@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ImageBackground, Animated } from 'react-native';
+import { View, StyleSheet, ImageBackground, Animated } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+
+// Import your screens
+import LoginSignup from './app/recordings/LoginSignup'; // Path to your LoginSignup component
 import RecordScreen from './app/recordings/RecordScreen';
+
+const Stack = createStackNavigator();
 
 export default function App() {
   const [isSplashVisible, setIsSplashVisible] = useState(true);
@@ -14,7 +21,7 @@ export default function App() {
         duration: 1000, // Fade out duration
         useNativeDriver: true,
       }).start();
-      
+
       // Hide the splash screen completely after fade out
       setTimeout(() => {
         setIsSplashVisible(false);
@@ -25,22 +32,30 @@ export default function App() {
   }, [fadeAnim]);
 
   return (
-    <View style={{ flex: 1 }}>
-      {isSplashVisible ? (
-        <Animated.View
-          style={[styles.splashContainer, { opacity: fadeAnim }]}
-        >
-          <ImageBackground
-            source={require('./assets/VOICE MEMOS.jpg')}
-            style={styles.imageBackground}
-            resizeMode="contain" // Makes sure the image is scaled properly
-          >
-          </ImageBackground>
-        </Animated.View>
-      ) : (
-        <RecordScreen /> // Main app content after splash
-      )}
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {/* Splash Screen Transition */}
+        {isSplashVisible ? (
+          <Stack.Screen name="Splash">
+            {() => (
+              <Animated.View
+                style={[styles.splashContainer, { opacity: fadeAnim }]}
+              >
+                <ImageBackground
+                  source={require('./assets/VOICE MEMOS.jpg')}
+                  style={styles.imageBackground}
+                  resizeMode="contain" // Makes sure the image is scaled properly
+                />
+              </Animated.View>
+            )}
+          </Stack.Screen>
+        ) : (
+          // Redirect to LoginSignup after splash
+          <Stack.Screen name="LoginSignup" component={LoginSignup} />
+        )}
+        {/* You can add more screens here */}
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
@@ -49,7 +64,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor:'black'
+    backgroundColor: 'black',
   },
   imageBackground: {
     flex: 1,
@@ -57,13 +72,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%', // Ensure it takes up full width
     height: '100%', // Ensure it takes up full height
-  },
-  splashText: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: 'white',
-    textShadowColor: 'rgba(0, 0, 0, 0.6)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 10,
   },
 });
