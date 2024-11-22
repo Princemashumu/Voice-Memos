@@ -1,80 +1,75 @@
+// RecordingModal.js
 import React from 'react';
-import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-// Helper function to format seconds into HH:MM:SS
-const formatTime = (seconds) => {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-
-  // Return formatted string as HH:MM:SS
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-};
-
-export default function RecordingModal({ modalAnimation, waveformAnimation, recordTime, onStop }) {
+export function RecordingModal({ modalAnimation, waveformAnimation, recordTime, onStop }) {
   return (
-    <Animated.View
+    <Animated.View 
       style={[
-        styles.modal,
+        styles.modalContainer,
         {
-          transform: [
-            {
-              translateY: modalAnimation.interpolate({
-                inputRange: [0, 1],
-                outputRange: [200, 0],
-              }),
-            },
-          ],
+          opacity: modalAnimation,
+          transform: [{
+            translateY: modalAnimation.interpolate({
+              inputRange: [0, 1],
+              outputRange: [100, 0],
+            }),
+          }],
         },
       ]}
     >
-      <Text style={styles.time}>{formatTime(recordTime)}</Text>
-      <Animated.View
-        style={[
-          styles.waveform,
-          {
-            transform: [
-              {
-                translateX: waveformAnimation.interpolate({
+      <View style={styles.modalContent}>
+        <Animated.View
+          style={[
+            styles.waveform,
+            {
+              transform: [{
+                scaleY: waveformAnimation.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [-50, 50],
+                  outputRange: [0.5, 1.5],
                 }),
-              },
-            ],
-          },
-        ]}
-      />
-      <TouchableOpacity onPress={onStop} style={styles.stopButton}>
-        <MaterialIcons name="stop" size={50} color="white" />
-      </TouchableOpacity>
+              }],
+            },
+          ]}
+        />
+        <Text style={styles.timer}>{recordTime}s</Text>
+        <TouchableOpacity onPress={onStop} style={styles.stopButton}>
+          <MaterialIcons name="stop" size={40} color="white" />
+        </TouchableOpacity>
+      </View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  modal: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    backgroundColor: 'white',
-    padding: 20,
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
-  time: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  modalContent: {
+    backgroundColor: '#333',
+    padding: 20,
+    borderRadius: 15,
+    alignItems: 'center',
+    width: '80%',
   },
   waveform: {
-    height: 5,
-    backgroundColor: 'green',
+    width: 200,
+    height: 4,
+    backgroundColor: '#ff6347',
     marginVertical: 20,
   },
+  timer: {
+    color: 'white',
+    fontSize: 24,
+    marginBottom: 20,
+  },
   stopButton: {
-    backgroundColor: 'red',
-    borderRadius: 50,
-    padding: 15,
+    backgroundColor: '#ff6347',
+    borderRadius: 30,
+    padding: 10,
   },
 });
