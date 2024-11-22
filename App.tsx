@@ -42,7 +42,7 @@ export default function App() {
                 style={[styles.splashContainer, { opacity: fadeAnim }]}
               >
                 <ImageBackground
-                  source={require('./assets/image1.jpg')}
+                  source={require('./assets/VOICE MEMOS (2).png')}
                   style={styles.imageBackground}
                   resizeMode="contain" // Makes sure the image is scaled properly
                 />
@@ -52,6 +52,7 @@ export default function App() {
         ) : (
           // Redirect to LoginSignup after splash
           <Stack.Screen name="LoginSignup" component={LoginSignup} />
+          // <Stack.Screen name="RecordScreen" component={RecordScreen}/>
         )}
         {/* You can add more screens here */}
       </Stack.Navigator>
@@ -64,13 +65,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'black',
+    backgroundColor: 'white',
     
   },
   imageBackground: {
-    width: 200, // Set a fixed width
-    height: 200, // Set a fixed height
-    borderRadius: 100, // Half of width/height to make it a circle
+    width: 100, 
+    height: 100,
+    // borderRadius: "", 
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden', // Ensures the image doesn't overflow the border radius
