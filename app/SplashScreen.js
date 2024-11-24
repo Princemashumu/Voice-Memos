@@ -3,17 +3,18 @@ import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from 'react
 
 export default function SplashScreen({ navigation }) {
   const handleGetStarted = () => {
-    navigation.replace('LoginSignup'); // Navigate to LoginSignup screen
+    navigation.replace('RecordScreen'); // Navigate to LoginSignup screen
   };
 
   return (
     <View style={styles.container}>
       {/* Top Section with Background Image */}
       <ImageBackground
-        source={require('../assets/1732283085433_8f1b.jpg')} // Replace with your background image
-        style={styles.topSection}
-        imageStyle={styles.imageStyle} // Ensures borderRadius applies to the image
-      >
+  source={require('../assets/1732283085433_8f1b.jpg')} // Replace with your background image
+  style={styles.topSection} // Styles for the container
+  imageStyle={styles.imageStyle} // Styles applied to the actual image (e.g., borderRadius)
+  resizeMode="cover" // Use resizeMode as a prop
+>
       </ImageBackground>
 
       {/* Bottom Section */}

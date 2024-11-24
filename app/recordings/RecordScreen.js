@@ -9,6 +9,7 @@
    Animated,
    Modal,
    FlatList,
+   TextInput,
    Alert,
  } from 'react-native';
  import { MaterialIcons } from '@expo/vector-icons';
@@ -29,11 +30,49 @@
    const [currentRecordingToDelete, setCurrentRecordingToDelete] = useState(null);
    const [hasPermission, setHasPermission] = useState(null);
    const [showPermissionModal, setShowPermissionModal] = useState(false);
+   const [filteredRecordings, setFilteredRecordings] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const debounceTimeoutRef = useRef(null);
+
  
    const modalAnimation = useRef(new Animated.Value(0)).current;
    const waveformAnimation = useRef(new Animated.Value(0)).current;
    const timerRef = useRef(null);
  
+   //seacrh 
+   useEffect(() => {
+    loadRecordings();
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredRecordings(recordings);
+    } else {
+      handleSearch(searchQuery);
+    }
+  }, [searchQuery, recordings]);
+
+  const handleSearch = (query) => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    debounceTimeoutRef.current = setTimeout(() => {
+      const lowercasedQuery = query.toLowerCase();
+      const results = recordings.filter(
+        (recording) =>
+          recording.name.toLowerCase().includes(lowercasedQuery) ||
+          new Date(recording.id).toLocaleDateString().includes(lowercasedQuery)
+      );
+      setFilteredRecordings(results);
+    }, 300); // Debounce delay (300ms)
+  };
+
    useEffect(() => {
      checkPermissions();
      loadRecordings();
@@ -312,14 +351,28 @@
    return (
      <View style={styles.container}>
        <Text style={styles.header}>Voice Memo</Text>
-       <Text style={styles.subHeader}>All Your Recordings</Text>
- 
-       <FlatList
+       {/* <Text style={styles.subHeader}>All Your Recordings</Text> */}
+ {/* Search Bar */}
+ <TextInput
+        style={styles.searchBar}
+        placeholder="Search for audio..."
+        placeholderTextColor="#ccc"
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
+
+      <FlatList
+        data={filteredRecordings}
+        keyExtractor={(item) => item.id}
+        renderItem={renderRecordingItem}
+        style={styles.recordingsList}
+      />
+       {/* <FlatList
          data={recordings}
          keyExtractor={(item) => item.id}
          renderItem={renderRecordingItem}
          style={styles.recordingsList}
-       />
+       /> */}
  
        {!isRecording && (
          <TouchableOpacity onPress={startRecording} style={styles.recordButton}>
@@ -364,13 +417,13 @@
    container: {
      flex: 1,
      backgroundColor: '#1e1e1e',
-     alignItems: 'center',
-     justifyContent: 'center',
+     alignItems: 'flex-start',
+     justifyContent: 'flex-start',
      paddingTop: 40,
    },
    header: {
      color: 'white',
-     fontSize: 28,
+     fontSize: 38,
      fontWeight: 'bold',
    },
    subHeader: {
@@ -378,6 +431,14 @@
      fontSize: 18,
      marginTop: 10,
    },
+   searchBar: {
+    backgroundColor: '#333',
+    color: 'white',
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 20,
+    width: '90%',
+  },
    recordButton: {
      marginTop: 20,
      backgroundColor: '#ff6347',
@@ -385,6 +446,8 @@
      padding: 20,
      justifyContent: 'center',
      alignItems: 'center',
+     bottom:20,
+     left:'40%'
    },
    recordingsList: {
      marginTop: 20,
