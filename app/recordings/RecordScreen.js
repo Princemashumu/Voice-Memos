@@ -20,7 +20,9 @@
  import { RecordingModal } from './RecordingModal';
  import Icon from 'react-native-vector-icons/Ionicons';
  import { useNavigation } from '@react-navigation/native';
- 
+import SettingsModal from '../../components/SettingsModal'; // Import the SettingsModal component
+
+
  export default function RecordScreen() {
    const [isRecording, setIsRecording] = useState(false);
    const [recordings, setRecordings] = useState([]);
@@ -35,12 +37,17 @@
    const [filteredRecordings, setFilteredRecordings] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const debounceTimeoutRef = useRef(null);
-
+  const [editingRecording, setEditingRecording] = useState(null);
+  const [newName, setNewName] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
+  
 
    const modalAnimation = useRef(new Animated.Value(0)).current;
    const waveformAnimation = useRef(new Animated.Value(0)).current;
    const timerRef = useRef(null);
- 
+   const [settingsVisible, setSettingsVisible] = useState(false);
+
+
    //seacrh 
    useEffect(() => {
     loadRecordings();
@@ -51,6 +58,32 @@
     };
   }, []);
 
+  const openEditModal = (recording) => {
+    setEditingRecording(recording);
+    setNewName(recording.name); // Initialize with the current name
+    setShowEditModal(true);
+  };
+  const saveEditedName = () => {
+    setRecordings((prevRecordings) =>
+      prevRecordings.map((rec) =>
+        rec.id === editingRecording.id ? { ...rec, name: newName } : rec
+      )
+    );
+    setFilteredRecordings((prevFiltered) =>
+      prevFiltered.map((rec) =>
+        rec.id === editingRecording.id ? { ...rec, name: newName } : rec
+      )
+    );
+    setShowEditModal(false);
+    setEditingRecording(null);
+  };
+    
+  const cancelEditing = () => {
+    setShowEditModal(false);
+    setEditingRecording(null);
+    setNewName('');
+  };
+  
   useEffect(() => {
     if (searchQuery.trim() === '') {
       setFilteredRecordings(recordings);
@@ -352,6 +385,13 @@
  
    return (
      <View style={styles.container}>
+      {/* Settings Icon in the Top-Right Corner */}
+      <TouchableOpacity
+        style={styles.settingsIcon}
+        onPress={() => setSettingsVisible(true)}
+      >
+        <MaterialIcons name="settings" size={24} color="black" />
+      </TouchableOpacity>
        <Text style={styles.header}>Voice Memo</Text>
        {/* <Text style={styles.subHeader}>All Your Recordings</Text> */}
  {/* Search Bar */}
@@ -367,6 +407,7 @@
         data={filteredRecordings}
         keyExtractor={(item) => item.id}
         renderItem={renderRecordingItem}
+        onPress={() => openEditModal(item)}
         style={styles.recordingsList}
       />
        {/* <FlatList
@@ -409,6 +450,34 @@
            </View>
          </View>
        </Modal>
+       <Modal visible={showEditModal} transparent animationType="slide">
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContent}>
+      <Text style={styles.modalTitle}>Edit Recording Name</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter new name"
+        value={newName}
+        onChangeText={setNewName}
+      />
+      <View style={styles.modalActions}>
+        <TouchableOpacity onPress={saveEditedName} style={styles.saveButton}>
+          <Text style={styles.saveButtonText}>Save</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={cancelEditing} style={styles.cancelButton}>
+          <Text style={styles.cancelButtonText}>Cancel</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</Modal>
+
+
+{/* Settings Modal */}
+<SettingsModal
+        visible={settingsVisible}
+        onClose={() => setSettingsVisible(false)}
+      />
  
        <PermissionModal />
      </View>
@@ -423,6 +492,18 @@
      justifyContent: 'flex-start',
      paddingTop: 40,
    },
+   settingsIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10, // Ensures the icon is above the rest of the content
+  },
+  headerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 50,
+  },
    header: {
      color: 'black',
      fontSize: 38,
@@ -503,5 +584,60 @@
    modalIcon: {
      marginBottom: 20,
    },
+   modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  input: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 20,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  saveButton: {
+    backgroundColor: '#4CAF50',
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    alignItems: 'center',
+    marginRight: 5,
+  },
+  saveButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  cancelButton: {
+    backgroundColor: '#F44336',
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    alignItems: 'center',
+    marginLeft: 5,
+  },
+  cancelButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
  });
  
