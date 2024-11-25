@@ -98,14 +98,15 @@ export default function LoginSignup({ navigation }) {
 
   const handleLogin = async () => {
     if (!validateInput()) return;
-    
+  
     setLoading(true);
     Keyboard.dismiss();
-
+  
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log('User logged in:', userCredential.user.email);
-      navigation.replace('Home');
+      // Navigate to the home screen
+      navigation.replace('RecordScreen'); // Adjust 'Home' to your desired screen
     } catch (error) {
       console.error('Login error:', error.code);
       Alert.alert('Login Failed', getErrorMessage(error.code));
@@ -113,13 +114,13 @@ export default function LoginSignup({ navigation }) {
       setLoading(false);
     }
   };
-
+  
   const handleSignup = async () => {
     if (!validateInput()) return;
-    
+  
     setLoading(true);
     Keyboard.dismiss();
-
+  
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log('User created:', userCredential.user.email);
@@ -135,6 +136,7 @@ export default function LoginSignup({ navigation }) {
       setLoading(false);
     }
   };
+  
 
   return (
     <ImageBackground
@@ -201,6 +203,7 @@ export default function LoginSignup({ navigation }) {
     </ImageBackground>
   );
 }
+
 const styles = StyleSheet.create({
   background: {
     flex: 1,
@@ -217,7 +220,7 @@ const styles = StyleSheet.create({
   topSection: {
     width: '100%',
     paddingVertical: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Semi-transparent for effect
+    backgroundColor: 'rgba(255, 255, 255, 1)', // Semi-transparent for effect
     alignItems: 'center',
     justifyContent: 'center',
     borderBottomLeftRadius: 250,
@@ -285,8 +288,9 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   toggleText: {
-    color: '#007BFF',
-    fontSize: 16,
+    color: 'black',
+    fontSize: 15,
     textAlign: 'center',
+    fontWeight:'bold'
   },
 });
