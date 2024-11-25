@@ -193,9 +193,9 @@
        }
  
        const newRecording = {
-         id: `${Date.now()}`,
+         id: `${Date.now().toString}`,
          time: recordTime,
-         name: `Recording ${recordings.length + 1}`,
+         name: `Recording ${new Date().toLocaleString()}`,
          uri: fileUri,
        };
        setRecordings((prev) => [newRecording, ...prev]);

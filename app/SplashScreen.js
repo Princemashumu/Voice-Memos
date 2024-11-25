@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from 'react
 
 export default function SplashScreen({ navigation }) {
   const handleGetStarted = () => {
-    navigation.replace('LoginSignup'); // Navigate to LoginSignup screen
+    navigation.replace('RecordScreen'); // Navigate to LoginSignup screen
   };
 
   return (
