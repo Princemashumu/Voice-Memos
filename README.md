@@ -48,9 +48,6 @@ Material-UI Icons: For a polished and modern design.
 
 Animated API: For smooth animations during recording and playback.
 
-Screenshots 📸
-Home Screen	Recording	Playback
-Home Screen	Recording	Playback
 Getting Started 🚀
 Follow these steps to set up and run the project on your local machine.
 
