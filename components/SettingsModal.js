@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     height:'100%',
     backgroundColor: 'white',
     borderRadius: 10,
-    padding: 20,
+    padding: "20%",
     alignItems: 'center',
     elevation: 10, // Shadow for Android
     shadowColor: '#000', // Shadow for iOS

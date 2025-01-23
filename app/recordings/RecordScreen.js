@@ -226,7 +226,7 @@ import SettingsModal from '../../components/SettingsModal'; // Import the Settin
        }
  
        const newRecording = {
-         id: `${Date.now().toString}`,
+        id: Date.now().toString(),
          time: recordTime,
          name: `Recording ${new Date().toLocaleString()}`,
          uri: fileUri,
@@ -305,6 +305,14 @@ import SettingsModal from '../../components/SettingsModal'; // Import the Settin
        setIsPlaying(false);
      }
    };
+
+   const handleRenameRecording = (id, newName) => {
+    setRecordings((prevRecordings) =>
+      prevRecordings.map((rec) =>
+        rec.id === id ? { ...rec, name: newName } : rec
+      )
+    );
+  };
  
    const handleDelete = async (id, uri) => {
      setShowDeleteModal(true);
@@ -490,12 +498,12 @@ import SettingsModal from '../../components/SettingsModal'; // Import the Settin
      backgroundColor: 'white',
      alignItems: 'flex-start',
      justifyContent: 'flex-start',
-     paddingTop: 40,
+     paddingTop: 60,
    },
    settingsIcon: {
     position: 'absolute',
-    top: 10,
-    right: 10,
+    top: "8%",
+    right: 25,
     zIndex: 10, // Ensures the icon is above the rest of the content
   },
   headerText: {
@@ -566,36 +574,51 @@ import SettingsModal from '../../components/SettingsModal'; // Import the Settin
      alignItems: 'center',
      gap: 10,
    },
-   modalContainer:
-    {
-     flex: 1,
-     justifyContent: 'center',
-     alignItems: 'center',
-     backgroundColor: 'rgba(0, 0, 0, 0.9)',
-   },
-   modalContent: 
-   {
-     backgroundColor: 'white',
-     padding: 20,
-     borderRadius: 10,
-     width: '80%',
-     alignItems: 'center',
-   },
-   modalIcon: {
-     marginBottom: 20,
-   },
-   modalOverlay: {
+   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
   },
   modalContent: {
-    width: '80%',
+    width: "80%",
+    backgroundColor: "#fff",
     padding: 20,
-    backgroundColor: 'white',
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5, // For Android shadow
+  },
+  modalText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+    color: "#333",
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    marginHorizontal: 5,
+    borderRadius: 8,
+    alignItems: "center",
+    backgroundColor: "#d9534f", // Red for delete action
+  },
+  cancelButton: {
+    backgroundColor: "#6c757d", // Gray for cancel action
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   modalTitle: {
     fontSize: 18,
