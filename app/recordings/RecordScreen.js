@@ -505,6 +505,7 @@ import SettingsModal from '../../components/SettingsModal'; // Import the Settin
     top: "8%",
     right: 25,
     zIndex: 10, // Ensures the icon is above the rest of the content
+    display:"none"
   },
   headerText: {
     fontSize: 18,
