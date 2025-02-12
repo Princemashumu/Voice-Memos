@@ -18,7 +18,13 @@
       "buildNumber": "1",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "We need access to your microphone to record voice memos.",
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio",
+          "audio"
+        ]
+      },
+      "runtimeVersion": {
+        "policy": "appVersion"
       }
     },
     "android": {
@@ -28,7 +34,15 @@
       },
       "package": "com.mernprince.VoiceMemos",
       "versionCode": 1,
-      "permissions": ["RECORD_AUDIO"]
+      "permissions": [
+        "RECORD_AUDIO",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "RECORD_AUDIO",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -50,6 +64,9 @@
         "projectId": "53ce8ae0-56e8-4462-ab3a-43177cba96cb"
       }
     },
-    "newArchEnabled": true
+    "newArchEnabled": true,
+    "updates": {
+      "url": "https://u.expo.dev/53ce8ae0-56e8-4462-ab3a-43177cba96cb"
+    }
   }
 }
