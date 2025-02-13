@@ -20,6 +20,8 @@
         "NSMicrophoneUsageDescription": "We need access to your microphone to record voice memos.",
         "UIBackgroundModes": [
           "audio",
+          "audio",
+          "audio",
           "audio"
         ]
       },
@@ -61,12 +63,12 @@
         "origin": false
       },
       "eas": {
-        "projectId": "53ce8ae0-56e8-4462-ab3a-43177cba96cb"
+        "projectId": "619628ce-4f11-4055-ae94-5b51493dc927"
       }
     },
     "newArchEnabled": true,
     "updates": {
-      "url": "https://u.expo.dev/53ce8ae0-56e8-4462-ab3a-43177cba96cb"
+      "url": "https://u.expo.dev/619628ce-4f11-4055-ae94-5b51493dc927"
     }
   }
 }
